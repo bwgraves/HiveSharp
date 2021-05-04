@@ -3,6 +3,8 @@ using RestSharp.Authenticators;
 using HiveSharp.Models;
 using System.Threading.Tasks;
 using HiveSharp.Auth;
+using System.Collections.Generic;
+using System;
 
 namespace HiveSharp
 {
@@ -11,6 +13,15 @@ namespace HiveSharp
     /// </summary>
     public abstract class BaseHiveClient
     {
+        protected string Username { get; set; }
+        protected string Password { get; set; }
+
+        protected BaseHiveClient(string username, string password)
+        {
+            Username = username;
+            Password = password;
+        }
+
         /// <summary>
         /// Gets a Hive client with the jwt added as an auth header.
         /// </summary>
@@ -54,15 +65,32 @@ namespace HiveSharp
         }
 
         /// <summary>
+        /// Calls the 'products' endpoint and returns the list.
+        /// </summary>
+        /// <returns>A list of <see cref="Product"/>.</returns>
+        public async Task<List<Product>> GetProducts()
+        {
+            var client = await GetAuthenticatedClient();
+            var request = new RestRequest("products", Method.GET);
+            request.AddJsonBody(new
+            {
+                token = await GetToken()
+            });
+
+            var response = await client.ExecuteAsync<List<Product>>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
         /// Gets the JWT.
-        /// TODO: Get it from somewhere automatically.
         /// </summary>
         /// <returns></returns>
         protected async Task<string> GetToken()
         {
             // TODO: Cache
             var hiveAuth = new HiveAuth();
-            var token = await hiveAuth.GetUserToken("", "");
+            var token = await hiveAuth.GetUserToken(Username, Password);
             return token;
         }
     }

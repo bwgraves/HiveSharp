@@ -1,8 +1,8 @@
 ﻿using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HiveSharp
@@ -12,6 +12,10 @@ namespace HiveSharp
     /// </summary>
     public class HeatingClient : BaseHiveClient
     {
+        public HeatingClient(string username, string password) : base(username, password)
+        {
+        }
+
         /// <summary>
         /// Boosts the heating!
         /// </summary>
@@ -32,6 +36,23 @@ namespace HiveSharp
             var result = await (await GetAuthenticatedClient()).ExecuteAsync(request);
 
             return result.StatusCode == HttpStatusCode.OK;
+        }
+
+        /// <summary>
+        /// Gets the temperature from the given thermostat.
+        /// </summary>
+        /// <param name="thermostatId">The device id of the thermostat.</param>
+        /// <returns>Returns the temperature.</returns>
+        public async Task<double> GetTemperature(string thermostatId)
+        {
+            var thermostat = (await GetProducts()).FirstOrDefault(p => p.Id == thermostatId);
+
+            if (thermostat == null)
+            {
+                throw new KeyNotFoundException("The thermostat with the given id couldn't be found.");
+            }
+
+            return thermostat.Props.Temperature;
         }
     }
 }
