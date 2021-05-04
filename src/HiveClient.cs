@@ -2,6 +2,7 @@
 using RestSharp.Authenticators;
 using HiveSharp.Models;
 using System.Threading.Tasks;
+using HiveSharp.Auth;
 
 namespace HiveSharp
 {
@@ -14,10 +15,10 @@ namespace HiveSharp
         /// Gets a Hive client with the jwt added as an auth header.
         /// </summary>
         /// <returns>An authenticated client.</returns>
-        public RestClient GetAuthenticatedClient()
+        public async Task<RestClient> GetAuthenticatedClient()
         {
             var client = GetClient();
-            client.Authenticator = new JwtAuthenticator(GetToken());
+            client.Authenticator = new JwtAuthenticator(await GetToken());
             return client;
         }
 
@@ -36,16 +37,17 @@ namespace HiveSharp
         /// <returns>An <see cref="AdminLoginResponse"/>.</returns>
         public async Task<AdminLoginResponse> GetAdmin()
         {
-            var client = GetAuthenticatedClient();
+            var client = await GetAuthenticatedClient();
             var request = new RestRequest("auth/admin-login", Method.POST);
             request.AddJsonBody(new
             {
-                token = GetToken(),
+                token = await GetToken(),
                 actions = true,
                 devices = true,
                 homes = true,
                 products = true
             });
+
             var response = await client.ExecuteAsync<AdminLoginResponse>(request);
 
             return response.Data;
@@ -56,10 +58,12 @@ namespace HiveSharp
         /// TODO: Get it from somewhere automatically.
         /// </summary>
         /// <returns></returns>
-        protected string GetToken()
+        protected async Task<string> GetToken()
         {
-            // Need to get the bearer token from somewhere
-            return "<THE JWT>";
+            // TODO: Cache
+            var hiveAuth = new HiveAuth();
+            var token = await hiveAuth.GetUserToken("", "");
+            return token;
         }
     }
 }

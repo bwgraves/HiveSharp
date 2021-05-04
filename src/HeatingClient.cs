@@ -29,7 +29,7 @@ namespace HiveSharp
                 target,
             });
 
-            var result = await GetAuthenticatedClient().ExecuteAsync(request);
+            var result = await (await GetAuthenticatedClient()).ExecuteAsync(request);
 
             return result.StatusCode == HttpStatusCode.OK;
         }
