@@ -36,15 +36,14 @@ namespace HiveSharp.Auth
 {
     public class HiveAuth
     {
-
-        private static string AWS_CLIENT_ID = "3rl4i0ajrmtdm8sbre54p9dvd9";
-
         public HiveAuth() { }
 
         public async Task<string> GetUserToken(string username, string password)
         {
-            var AWS_REGION = Amazon.RegionEndpoint.EUWest1; //TODO: change to the region your pool is in! i.e.:  Amazon.RegionEndpoint.USWest2
-            var POOL_NAME = "SamNfoWtf";  // (without the region identifier. It is usually <region>_<name>, just the name part here!)
+            var credentials = await CredentialHelper.GetCredentials();
+
+            var AWS_REGION = credentials.Region;
+            var POOL_NAME = credentials.PoolName;
             AnonymousAWSCredentials cred = new AnonymousAWSCredentials();
 
             // Identify your Cognito UserPool Provider
@@ -56,7 +55,7 @@ namespace HiveSharp.Auth
                 //Initiate auth with the generated SRP A
                 var authResponse = await provider.InitiateAuthAsync(new InitiateAuthRequest
                 {
-                    ClientId = AWS_CLIENT_ID,
+                    ClientId = credentials.ClientId,
                     AuthFlow = Amazon.CognitoIdentityProvider.AuthFlowType.USER_SRP_AUTH,
                     AuthParameters = new Dictionary<string, string>() {
                         { "USERNAME", username },
@@ -93,7 +92,7 @@ namespace HiveSharp.Auth
                 var resp = await provider.RespondToAuthChallengeAsync(new RespondToAuthChallengeRequest
                 {
                     ChallengeName = authResponse.ChallengeName,
-                    ClientId = AWS_CLIENT_ID,
+                    ClientId = credentials.ClientId,
                     ChallengeResponses = new Dictionary<string, string>() {
                         { "PASSWORD_CLAIM_SECRET_BLOCK", authResponse.ChallengeParameters["SECRET_BLOCK"] },
                         { "PASSWORD_CLAIM_SIGNATURE", claimBase64 },

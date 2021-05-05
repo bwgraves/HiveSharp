@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HiveSharp.Auth;
 using System.Collections.Generic;
 using System;
+using HiveSharp.Data;
 
 namespace HiveSharp
 {
@@ -39,7 +40,7 @@ namespace HiveSharp
         /// <returns>A <see cref="RestClient"/>.</returns>
         public RestClient GetClient()
         {
-            return new RestClient("https://beekeeper-uk.hivehome.com/1.0");
+            return new RestClient(Endpoints.BaseUrl);
         }
 
         /// <summary>
@@ -49,7 +50,7 @@ namespace HiveSharp
         public async Task<AdminLoginResponse> GetAdmin()
         {
             var client = await GetAuthenticatedClient();
-            var request = new RestRequest("auth/admin-login", Method.POST);
+            var request = new RestRequest(Endpoints.AdminLogin, Method.POST);
             request.AddJsonBody(new
             {
                 token = await GetToken(),
@@ -71,7 +72,7 @@ namespace HiveSharp
         public async Task<List<Product>> GetProducts()
         {
             var client = await GetAuthenticatedClient();
-            var request = new RestRequest("products", Method.GET);
+            var request = new RestRequest(Endpoints.Products, Method.GET);
             request.AddJsonBody(new
             {
                 token = await GetToken()
@@ -85,7 +86,6 @@ namespace HiveSharp
         /// <summary>
         /// Gets the JWT.
         /// </summary>
-        /// <returns></returns>
         protected async Task<string> GetToken()
         {
             // TODO: Cache
